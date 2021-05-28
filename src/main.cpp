@@ -1,9 +1,14 @@
 #include <Arduino.h>
 
+int LED_BLINK = 19;
+
 void setup() {
-  // put your setup code here, to run once:
+  pinMode(LED_BLINK, OUTPUT);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  delay(1000);
+  digitalWrite(LED_BLINK, HIGH);
+  delay(1000);
+  digitalWrite(LED_BLINK, LOW);
 }
