@@ -24,14 +24,13 @@ void setup() {
   setupWiFi();
 }
 
-void loop() {
-  static bool wait = false;
+String getDataFromNAM() {
   char status[32] = {0};
   WiFiClient http;
 
   if (!http.connect(namServer, 80)) {
     Serial.println("HTTP client connection failed");
-    return;
+    return "{}";
   }
 
   if(http.connected()) {
@@ -46,10 +45,10 @@ void loop() {
     if (millis() - timeout > 30000) {
       Serial.println("HTTP client Timeout !");
       http.stop();
-      return;
+      return "{}";
     }
   }
-  Serial.printf("HTTP client waited for response %d milliseconds \n", millis() - timeout);
+  Serial.printf("HTTP client waited for response %lu milliseconds \n", millis() - timeout);
 
   http.readBytesUntil('\r', status, sizeof(status));
 
@@ -58,7 +57,7 @@ void loop() {
     Serial.print("Unexpected response: ");
     Serial.println(status);
     http.stop();
-    return;
+    return "{}";
   }
 
 // Skip HTTP headers
@@ -67,16 +66,28 @@ void loop() {
   {
     Serial.println("Invalid response");
     http.stop();
+    return "{}";
+  }
+
+  String result = "";
+  while (http.available()) {
+    char c = http.read();
+    result.concat(c);
+  }
+
+  http.stop();
+  return result;
+}
+
+void loop() {
+  static bool wait = false;
+  String dataFromNam = getDataFromNAM();
+  if (dataFromNam == "{}") {
+    delay(1000);
     return;
   }
 
-  while (http.available()) {
-    char c = http.read();
-    Serial.print(c);
-  }
-  Serial.println();
-
-  http.stop();
+  Serial.println(dataFromNam);
 
   if (wait) {
     delay(5000); // execute once every 5 seconds, don't flood remote service
