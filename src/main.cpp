@@ -3,7 +3,6 @@
 
 #include "secrets.h"
 
-WiFiClient http;
 IPAddress namServer(192,168,1,38);
 
 void setupWiFi() {
@@ -26,14 +25,31 @@ void setup() {
 }
 
 void loop() {
+  static bool wait = false;
   char status[32] = {0};
+  WiFiClient http;
 
-  http.connect(namServer, 80);
-  http.println("GET /data.json HTTP/1.0");
-  http.println();
-  while (!http.available()) {
-    delay(10);
+  if (!http.connect(namServer, 80)) {
+    Serial.println("HTTP client connection failed");
+    return;
   }
+
+  if(http.connected()) {
+    Serial.println("HTTP client connected");
+    http.println("GET /data.json HTTP/1.0");
+  }
+
+
+  // wait for data to be available
+  unsigned long timeout = millis();
+  while (http.available() == 0) {
+    if (millis() - timeout > 30000) {
+      Serial.println("HTTP client Timeout !");
+      http.stop();
+      return;
+    }
+  }
+  Serial.printf("HTTP client waited for response %d milliseconds \n", millis() - timeout);
 
   http.readBytesUntil('\r', status, sizeof(status));
 
@@ -61,5 +77,9 @@ void loop() {
   Serial.println();
 
   http.stop();
-  delay(5000);
+
+  if (wait) {
+    delay(5000); // execute once every 5 seconds, don't flood remote service
+  }
+  wait = true;
 }
