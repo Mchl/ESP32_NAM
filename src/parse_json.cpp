@@ -8,6 +8,7 @@ NamData parseJson(String jsonString)
     DeserializationError err = deserializeJson(jsonDoc, jsonString);
 
     NamData namData;
+    namData.signal = 0;
 
     if (err)
     {
