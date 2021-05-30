@@ -27,7 +27,7 @@ NamData parseJson(String jsonString)
     namData.humidity = jsonDoc["sensordatavalues"][3]["value"];
     namData.pressureRaw = jsonDoc["sensordatavalues"][4]["value"];
     namData.pressureRaw /= 100;
-    namData.pressureBarometric = namData.pressureRaw * pow(1 - (0.0065 * ASL) / (namData.temperature + 0.0065 * ASL), -5.257);
+    namData.pressureBarometric = namData.pressureRaw * pow(1 - (0.0065 * ASL) / (namData.temperature + 0.0065 * ASL + 273.15), -5.257);
     namData.signal = jsonDoc["sensordatavalues"][10]["value"];
 
     return namData;
